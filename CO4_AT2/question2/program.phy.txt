@@ -1,0 +1,49 @@
+# Manufacturing Resource Allocation using Dynamic Programming
+# 0/1 Knapsack Problem
+
+products = ['A', 'B', 'C', 'D']
+investment = [20000, 30000, 40000, 50000]
+profit = [25000, 40000, 50000, 65000]
+
+budget = 100000
+n = len(products)
+
+# DP Table
+dp = [[0 for j in range(budget + 1)] for i in range(n + 1)]
+
+# Build DP Table
+for i in range(1, n + 1):
+    for w in range(budget + 1):
+        if investment[i - 1] <= w:
+            dp[i][w] = max(
+                profit[i - 1] + dp[i - 1][w - investment[i - 1]],
+                dp[i - 1][w]
+            )
+        else:
+            dp[i][w] = dp[i - 1][w]
+
+# Find selected products
+selected_products = []
+w = budget
+
+for i in range(n, 0, -1):
+    if dp[i][w] != dp[i - 1][w]:
+        selected_products.append(products[i - 1])
+        w -= investment[i - 1]
+
+selected_products.reverse()
+
+# Display Result
+print("Manufacturing Resource Allocation")
+print("---------------------------------")
+print("Selected Products :", selected_products)
+print("Maximum Profit : Rs.", dp[n][budget])
+
+total_investment = 0
+for p in selected_products:
+    index = products.index(p)
+    total_investment += investment[index]
+
+print("Total Investment : Rs.", total_investment)
+
+input("\nPress Enter to Exit...")
