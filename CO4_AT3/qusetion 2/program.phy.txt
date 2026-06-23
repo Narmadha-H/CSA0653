@@ -1,0 +1,85 @@
+# Delivery Vehicle Loading Problem
+
+# Package details
+packages = [
+    ("P1", 10, 60),
+    ("P2", 20, 100),
+    ("P3", 30, 130),
+    ("P4", 25, 110)
+]
+
+capacity = 50
+
+# ------------------ Greedy Approach ------------------
+def greedy_knapsack(packages, capacity):
+    # Calculate profit/weight ratio
+    items = []
+
+    for name, weight, profit in packages:
+        ratio = profit / weight
+        items.append((name, weight, profit, ratio))
+
+    # Sort based on ratio (descending)
+    items.sort(key=lambda x: x[3], reverse=True)
+
+    selected = []
+    total_profit = 0
+    total_weight = 0
+
+    for name, weight, profit, ratio in items:
+        if total_weight + weight <= capacity:
+            selected.append(name)
+            total_weight += weight
+            total_profit += profit
+
+    return selected, total_weight, total_profit
+
+
+# ---------------- Dynamic Programming Approach ----------------
+def dp_knapsack(packages, capacity):
+    n = len(packages)
+
+    # DP table
+    dp = [[0 for _ in range(capacity + 1)] for _ in range(n + 1)]
+
+    # Build table
+    for i in range(1, n + 1):
+        weight = packages[i - 1][1]
+        profit = packages[i - 1][2]
+
+        for w in range(capacity + 1):
+            if weight <= w:
+                dp[i][w] = max(
+                    profit + dp[i - 1][w - weight],
+                    dp[i - 1][w]
+                )
+            else:
+                dp[i][w] = dp[i - 1][w]
+
+    # Find selected packages
+    selected = []
+    w = capacity
+
+    for i in range(n, 0, -1):
+        if dp[i][w] != dp[i - 1][w]:
+            selected.append(packages[i - 1][0])
+            w -= packages[i - 1][1]
+
+    selected.reverse()
+
+    return selected, dp[n][capacity]
+
+
+# ---------------- Main Program ----------------
+g_selected, g_weight, g_profit = greedy_knapsack(packages, capacity)
+
+dp_selected, dp_profit = dp_knapsack(packages, capacity)
+
+print("===== Greedy Approach =====")
+print("Selected Packages :", g_selected)
+print("Total Weight      :", g_weight, "kg")
+print("Total Profit      :", g_profit)
+
+print("\n===== Dynamic Programming =====")
+print("Selected Packages :", dp_selected)
+print("Optimal Profit    :", dp_profit)
