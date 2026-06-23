@@ -1,0 +1,25 @@
+def binary_search(arr, key):
+    low = 0
+    high = len(arr) - 1
+    count = 0
+
+    while low <= high:
+        count += 1
+        mid = (low + high) // 2
+
+        if arr[mid] == key:
+            return mid, count
+        elif arr[mid] < key:
+            low = mid + 1
+        else:
+            high = mid - 1
+
+    return -1, count
+
+
+sizes = [10, 100, 1000, 10000]
+
+for n in sizes:
+    arr = list(range(n))
+    position, iterations = binary_search(arr, n-1)
+    print("n =", n, "Iterations =", iterations)
