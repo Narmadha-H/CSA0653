@@ -1,0 +1,201 @@
+# ==========================================================
+# JOB SCHEDULING USING BACKTRACKING (NP-HARD / CSP PROBLEM)
+# ==========================================================
+#
+# PROBLEM:
+# Assign jobs to employees such that:
+#
+# 1. Every job is assigned to exactly one employee.
+# 2. Job must finish before its deadline.
+# 3. Employee must possess the required skill.
+# 4. An employee cannot handle overlapping jobs.
+#
+# CONSTRAINTS:
+# - Time Constraint      : Job end time <= deadline
+# - Resource Constraint  : One employee cannot do
+#                          multiple jobs at the same time.
+# - Skill Constraint     : Employee must have required skill.
+#
+# APPROACH:
+# Use Backtracking (Constraint Satisfaction Problem).
+#
+# STEPS:
+# 1. Pick a job.
+# 2. Try assigning it to each employee.
+# 3. Check all constraints.
+# 4. If valid, recursively assign next job.
+# 5. If assignment fails, undo assignment (Backtrack).
+#
+# PRUNING:
+# Reject a branch immediately if:
+# - Deadline is violated.
+# - Employee lacks required skill.
+# - Job overlaps with employee's assigned jobs.
+#
+# This reduces unnecessary search and improves efficiency.
+#
+# TIME COMPLEXITY:
+# Worst Case = O(m^n)
+# where:
+# m = number of employees
+# n = number of jobs
+#
+# ==========================================================
+
+
+# ---------------------------
+# Employee Data
+# ---------------------------
+employees = {
+    "Alice": ["Programming", "Testing"],
+    "Bob": ["Programming"],
+    "Charlie": ["Testing"]
+}
+
+
+# ---------------------------
+# Job Data
+# start    -> job start time
+# end      -> job finish time
+# deadline -> latest completion time
+# skill    -> required skill
+# ---------------------------
+jobs = [
+    {
+        "name": "Job1",
+        "start": 1,
+        "end": 3,
+        "deadline": 4,
+        "skill": "Programming"
+    },
+    {
+        "name": "Job2",
+        "start": 2,
+        "end": 5,
+        "deadline": 5,
+        "skill": "Testing"
+    },
+    {
+        "name": "Job3",
+        "start": 5,
+        "end": 7,
+        "deadline": 8,
+        "skill": "Programming"
+    }
+]
+
+
+# Dictionary to store final assignments
+assignment = {}
+
+
+# Stores jobs assigned to each employee
+employee_schedule = {
+    employee: [] for employee in employees
+}
+
+
+# ==========================================================
+# FUNCTION: Check if two jobs overlap
+# ==========================================================
+def overlaps(job1, job2):
+
+    # No overlap if:
+    # Job1 ends before Job2 starts
+    # OR
+    # Job2 ends before Job1 starts
+
+    if job1["end"] <= job2["start"]:
+        return False
+
+    if job2["end"] <= job1["start"]:
+        return False
+
+    return True
+
+
+# ==========================================================
+# FUNCTION: Check whether assigning a job
+# to an employee satisfies all constraints
+# ==========================================================
+def is_valid(employee, job):
+
+    # ----------------------
+    # Constraint 1:
+    # Deadline Check
+    # ----------------------
+    if job["end"] > job["deadline"]:
+        return False
+
+    # ----------------------
+    # Constraint 2:
+    # Skill Check
+    # ----------------------
+    if job["skill"] not in employees[employee]:
+        return False
+
+    # ----------------------
+    # Constraint 3:
+    # Time Overlap Check
+    # ----------------------
+    for assigned_job in employee_schedule[employee]:
+
+        if overlaps(job, assigned_job):
+            return False
+
+    return True
+
+
+# ==========================================================
+# BACKTRACKING FUNCTION
+# ==========================================================
+def schedule_jobs(job_index):
+
+    # Base Case:
+    # All jobs successfully assigned
+    if job_index == len(jobs):
+        return True
+
+    # Select current job
+    current_job = jobs[job_index]
+
+    # Try every employee
+    for employee in employees:
+
+        # PRUNING:
+        # Proceed only if constraints are satisfied
+        if is_valid(employee, current_job):
+
+            # ----------------------
+            # Assign Job
+            # ----------------------
+            assignment[current_job["name"]] = employee
+            employee_schedule[employee].append(current_job)
+
+            # Recursively assign next job
+            if schedule_jobs(job_index + 1):
+                return True
+
+            # ----------------------
+            # BACKTRACK
+            # Remove assignment
+            # ----------------------
+            del assignment[current_job["name"]]
+            employee_schedule[employee].remove(current_job)
+
+    # No valid assignment found
+    return False
+
+
+# ==========================================================
+# MAIN PROGRAM
+# ==========================================================
+if schedule_jobs(0):
+
+    print("\nFeasible Job Schedule Found\n")
+
+    for job, employee in assignment.items():
+        print(job, "->", employee)
+
+else:
+    print("No feasible schedule exists.")

@@ -1,0 +1,188 @@
+# ==========================================================
+# EXAM TIMETABLING USING GRAPH COLORING (CSP / NP-COMPLETE)
+# ==========================================================
+#
+# PROBLEM:
+# Schedule university exams such that:
+#
+# 1. No student has overlapping exams.
+# 2. Each exam is assigned exactly one time slot.
+# 3. Room capacity constraints are satisfied.
+# 4. Available time slots are used efficiently.
+#
+# CONSTRAINTS:
+# - Student Conflict Constraint:
+#   Exams sharing students cannot be in the same slot.
+#
+# - Time Slot Constraint:
+#   Every exam must be assigned one valid slot.
+#
+# - Room Capacity Constraint:
+#   Total students in a slot must not exceed room capacity.
+#
+# APPROACH:
+# Use Graph Coloring with Backtracking.
+#
+# STEPS:
+# 1. Represent each exam as a vertex.
+# 2. Create edges between conflicting exams.
+# 3. Assign a time slot (color) to each exam.
+# 4. Check constraints before assignment.
+# 5. If conflict occurs, backtrack.
+#
+# PRUNING:
+# Reject a slot immediately if:
+# - Adjacent exam already uses that slot.
+# - Room capacity is exceeded.
+#
+# TIME COMPLEXITY:
+# Worst Case = O(k^n)
+#
+# where:
+# k = number of time slots
+# n = number of exams
+#
+# ==========================================================
+
+
+# ---------------------------
+# Exam Conflict Graph
+# ---------------------------
+#
+# Edge means at least one student
+# is enrolled in both exams.
+#
+# Math ----- Physics
+#   |           |
+#   |        Biology
+#   |
+# Chemistry
+#
+# ---------------------------
+
+graph = {
+    "Math": ["Physics", "Chemistry"],
+    "Physics": ["Math", "Biology"],
+    "Chemistry": ["Math"],
+    "Biology": ["Physics"]
+}
+
+
+# ---------------------------
+# Number of students
+# appearing for each exam
+# ---------------------------
+students_count = {
+    "Math": 40,
+    "Physics": 35,
+    "Chemistry": 30,
+    "Biology": 25
+}
+
+
+# ---------------------------
+# Room Capacity
+# ---------------------------
+room_capacity = 100
+
+
+# ---------------------------
+# Available Time Slots
+# ---------------------------
+total_slots = 3
+
+
+# Dictionary to store
+# final exam schedule
+assignment = {}
+
+
+# ==========================================================
+# FUNCTION:
+# Check whether assigning a slot
+# to an exam is valid
+# ==========================================================
+def is_valid(exam, slot):
+
+    # ----------------------
+    # Constraint 1:
+    # Student Conflict Check
+    # ----------------------
+    for neighbor in graph[exam]:
+
+        if neighbor in assignment:
+            if assignment[neighbor] == slot:
+                return False
+
+    # ----------------------
+    # Constraint 2:
+    # Room Capacity Check
+    # ----------------------
+    students_in_slot = students_count[exam]
+
+    for assigned_exam in assignment:
+
+        if assignment[assigned_exam] == slot:
+            students_in_slot += students_count[assigned_exam]
+
+    if students_in_slot > room_capacity:
+        return False
+
+    return True
+
+
+# ==========================================================
+# BACKTRACKING FUNCTION
+# ==========================================================
+def schedule_exams(exam_index):
+
+    # Base Case:
+    # All exams assigned
+    if exam_index == len(exams):
+        return True
+
+    # Select current exam
+    current_exam = exams[exam_index]
+
+    # Try every time slot
+    for slot in range(1, total_slots + 1):
+
+        # PRUNING:
+        # Continue only if constraints hold
+        if is_valid(current_exam, slot):
+
+            # ----------------------
+            # Assign Slot
+            # ----------------------
+            assignment[current_exam] = slot
+
+            # Recursively assign next exam
+            if schedule_exams(exam_index + 1):
+                return True
+
+            # ----------------------
+            # BACKTRACK
+            # Remove assignment
+            # ----------------------
+            del assignment[current_exam]
+
+    # No valid slot found
+    return False
+
+
+# ==========================================================
+# MAIN PROGRAM
+# ==========================================================
+
+# List of exams
+exams = list(graph.keys())
+
+if schedule_exams(0):
+
+    print("\nFeasible Exam Timetable Found\n")
+
+    for exam, slot in assignment.items():
+        print(exam, "-> Time Slot", slot)
+
+else:
+    print("No feasible timetable exists.")
